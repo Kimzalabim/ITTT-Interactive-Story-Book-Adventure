@@ -1,0 +1,398 @@
+/*
+
+*/
+//LCD:
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x3f,16,2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
+int textDisplay;
+int textDisplayLong = 4000;
+int textDisplayShort = 2500;   
+
+
+//buttons:
+int switchStateA = HIGH;
+int switchStateB = HIGH;
+int switchStateC = HIGH;
+int butnPinA = 8;
+int butnPinB = 10;
+int butnPinC = 12;
+bool canButtonBePressed;
+
+//Scene:
+int currentScene;
+
+void setup() {
+  lcd.init();
+  lcd.backlight();
+  Serial.begin(9600);
+
+  currentScene = 0;
+  pinMode(butnPinA, INPUT_PULLUP);  //PULLUP, low wordt dan high, en je leest !High uit.
+  pinMode(butnPinB, INPUT_PULLUP);
+  pinMode(butnPinC, INPUT_PULLUP);
+
+  canButtonBePressed = false;
+  DisplayButtonCheck();
+  InitiateNewScene();
+  delay(1000);
+
+  canButtonBePressed = true;
+  DisplayButtonCheck();
+  
+  
+  textDisplay = textDisplayShort;
+  
+  //textDisplay = textDisplayLong;
+}
+
+void loop() {
+  
+  switchStateA = digitalRead(butnPinA);
+  switchStateB = digitalRead(butnPinB);
+  switchStateC = digitalRead(butnPinC);
+
+  if (canButtonBePressed) {
+    ButtonCheck();
+  }
+
+  //DisplayCurrentScene();
+
+}
+
+void ButtonCheck() {
+  if (switchStateA != HIGH) {
+    Serial.println("A");
+    if (currentScene == 1 || currentScene ==  4 || currentScene == 7) {
+      currentScene += 3;
+    } else {
+      if (currentScene == 2 || currentScene == 5 || currentScene == 8) {
+        currentScene += 2;
+      } else if(currentScene < 13 ) { //aan het einde nog een 'cap maken'> ook voor andere buttons
+        currentScene += 1;
+      }
+    }
+    //SceneCountChange();
+    //SceneCheck();
+    //DisplayCurrentScene();
+    
+    //ResetButtonCheck();
+    //DisplayCurrentScene();
+    InitiateNewScene();
+
+  } else if (switchStateB != HIGH) {
+    Serial.println("B");
+    if (currentScene == 2 || currentScene ==  5 || currentScene == 8) {
+      currentScene += 3;
+    } else {
+      if (currentScene == 0 || currentScene == 3 || currentScene == 6 || currentScene == 9) {
+        currentScene += 2;
+      } else if(currentScene < 13 ) {
+        currentScene += 1;
+      }
+    }
+
+    //ResetButtonCheck();
+    //DisplayCurrentScene();
+    InitiateNewScene();
+
+  } else if (switchStateC != HIGH) {
+    Serial.println("C");
+    if (currentScene == 0 || currentScene == 3 || currentScene == 6 || currentScene == 9) {
+      currentScene += 3;
+    } else {
+      if (currentScene == 4 || currentScene == 7 || currentScene == 10) {
+        currentScene += 2;
+      } else  if(currentScene < 13 ){
+        currentScene += 3;
+      }
+    }
+    //ResetButtonCheck();
+    //DisplayCurrentScene();
+    InitiateNewScene();
+  }
+    ResetButtonCheck(); 
+    //InitiateNewScene();
+    DisplayCurrentScene();
+}
+
+void ResetButtonCheck() {
+
+  ButtonCheckSwitch();
+
+  delay(2000);
+
+  ButtonCheckSwitch();
+}
+
+void ButtonCheckSwitch() {
+  DisplayButtonCheck();
+  if (canButtonBePressed) {
+    !canButtonBePressed;
+    //Serial.println("Button can NOT be pressed");
+  } else { //if (!canButtonBePressed) {
+    canButtonBePressed;
+    //Serial.println("Button can YES be pressed");
+  }
+  DisplayButtonCheck();
+}
+
+void DisplayButtonCheck() {
+  if (!canButtonBePressed) {
+    Serial.println("Button can NOT be pressed");
+  } else if (canButtonBePressed) {
+    Serial.println("Button can YES be pressed");
+  }
+}
+
+void DisplayCurrentScene() {
+  //delay(5000);
+  Serial.println(currentScene);
+}
+
+void InitiateNewScene() {
+  //ButtonCheckSwitch();
+
+  if (currentScene == 0) {
+    lcd.clear();
+    delay(500);
+    lcd.setCursor(0,0);
+    lcd.print("A vicious lookin"); //here comes scene dependent stuff
+    lcd.setCursor(0,1);
+    lcd.print("creature-with"); //here comes scene dependent stuff line 2
+    delay(textDisplay);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("creature-with"); //here comes scene dependent stuff line 2 becomes 1
+    lcd.setCursor(0,1);
+    lcd.print("sharp claws!"); //here comes scene dependent stuff line 2
+    delay(textDisplay);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("You see monster"); //here comes scene depentent summary
+    delay(1000);
+    lcd.setCursor(0,1);
+    lcd.print("What do you do?"); //copypasta each scene
+    
+  } else if (currentScene == 1) {
+    
+    lcd.clear();
+    delay(500);
+    lcd.setCursor(0,0);
+    lcd.print("The creature"); //here comes scene dependent stuff
+    lcd.setCursor(0,1);
+    lcd.print("snarls. It's"); //here comes scene dependent stuff line 2
+    delay(textDisplay);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("snarls. It's"); //here comes scene dependent stuff line 2 becomes 1
+    lcd.setCursor(0,1);
+    lcd.print("meaning is vague"); //here comes scene dependent stuff line 2
+    delay(textDisplay);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Monster snarls"); //here comes scene depentent summary
+    delay(1000);
+    lcd.setCursor(0,1);
+    lcd.print("What do you do?"); //copypasta each scene
+    
+  } else if (currentScene == 2) {
+    
+    lcd.clear();
+    delay(500);
+    lcd.setCursor(0,0);
+    lcd.print(""); //here comes scene dependent stuff
+    lcd.setCursor(0,1);
+    lcd.print(""); //here comes scene dependent stuff line 2
+    delay(textDisplay);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(""); //here comes scene dependent stuff line 2 becomes 1
+    lcd.setCursor(0,1);
+    lcd.print(""); //here comes scene dependent stuff line 2
+    delay(textDisplay);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(""); //here comes scene depentent summary
+    delay(1000);
+    lcd.setCursor(0,1);
+    lcd.print("What do you do?"); //copypasta each scene
+    
+  } else if (currentScene == 3) {
+     lcd.clear();
+  delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("scene 3");
+  lcd.setCursor(0,1);
+  lcd.print("");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("sjdnsdjnf");
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?");
+    
+  } else if (currentScene == 4) {
+     lcd.clear();
+  delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("scene 4");
+  lcd.setCursor(0,1);
+  lcd.print("");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("dgdg");
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?");
+    
+  } else if (currentScene == 5) {
+     lcd.clear();
+  delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("scene 5");
+  lcd.setCursor(0,1);
+  lcd.print("");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("dsfdf");
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?");
+
+
+  } else if (currentScene == 6) {
+     lcd.clear();
+  delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("scene 6");
+  lcd.setCursor(0,1);
+  lcd.print("");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("sdfsdfd");
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?");
+
+  } else if (currentScene == 7) {
+     lcd.clear();
+  delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("scene 7");
+  lcd.setCursor(0,1);
+  lcd.print("");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("sdfsdfsd");
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?");
+
+  } else if (currentScene == 8) {
+     lcd.clear();
+  delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("scene 8");
+  lcd.setCursor(0,1);
+  lcd.print("");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("sdfsdfs");
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?");
+
+  } else if (currentScene == 9) {
+     lcd.clear();
+  delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("scene 9");
+  lcd.setCursor(0,1);
+  lcd.print("");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("sdfsdf");
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?");
+
+  } else if (currentScene == 10) {
+     lcd.clear();
+  delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("scene 10");
+  lcd.setCursor(0,1);
+  lcd.print("");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("sdfsdf");
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?");
+
+  } else if (currentScene == 11) {
+     lcd.clear();
+  delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("scene 11");
+  lcd.setCursor(0,1);
+  lcd.print("");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("sdfsdfsd");
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?");
+
+  } else if (currentScene == 12) {
+     lcd.clear();
+  delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("scene 12");
+  lcd.setCursor(0,1);
+  lcd.print("");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("sdfdsfsd");
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?");
+
+  } else if (currentScene > 12){
+    ResetGame();
+  }
+  
+
+}
+
+void ResetGame(){
+  setup();
+}
+
+void DoNotUse(){
+  lcd.clear();
+  delay(500);
+  lcd.setCursor(0,0);
+  lcd.print("");
+  lcd.setCursor(0,1);
+  lcd.print("");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("");
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?");
+  
+}
