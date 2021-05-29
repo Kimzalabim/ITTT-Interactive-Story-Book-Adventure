@@ -1,0 +1,733 @@
+/*
+ITTT
+Interactive Story Book: The Book Of Tales 
+by Kim Reinders Folmer 2021
+*/
+//LCD:
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x3f,16,2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
+
+//buttons:
+int switchStateA = HIGH;
+int switchStateB = HIGH;
+int switchStateC = HIGH;
+int butnPinA = 8; //button adresses
+int butnPinB = 10;
+int butnPinC = 12;
+bool canButtonBePressed; //a check, wether a player can/cannot press any buttons (during scene descriptions for example, that player cannot press any button)
+
+//Scene:
+int currentScene;
+
+//status effects:
+//scene 1: gate
+bool isPoison = false; //option behind button a on scene 1
+bool isCripple = false; //option behind button b on scene 1
+bool isClever = false; //option behind button c on scene 1
+
+bool isBless = false; //option behind button a on scene 5
+bool isHeartless = false; //option behind button b on scene 5
+bool isCursed = false; //option behind button c on scene 5
+
+void setup() {
+  lcd.init();
+  lcd.backlight();
+  Serial.begin(9600);
+
+  currentScene = 0;
+  pinMode(butnPinA, INPUT_PULLUP);  //PULLUP, low becomes high.
+  pinMode(butnPinB, INPUT_PULLUP);
+  pinMode(butnPinC, INPUT_PULLUP);
+
+  canButtonBePressed = false;
+  InitiateNewScene();
+  delay(1000);
+
+  canButtonBePressed = true;
+}
+
+void loop() {
+  
+  switchStateA = digitalRead(butnPinA);
+  switchStateB = digitalRead(butnPinB);
+  switchStateC = digitalRead(butnPinC);
+
+  if (canButtonBePressed) { //whenever a player can press a button, code checks which buttons are pressed
+    ButtonCheck();
+  }
+
+
+}
+
+void ButtonCheck() { //checks whichever button is pressed, and depending on scene, jumps to the appropriate scene
+  if (switchStateA != HIGH) { //for A button
+    Serial.println("A");
+    
+    //for scene 1, 5 & 9, whenever button A is pressed, go to the scenes that have the results for the A button.
+    if(currentScene == 1){
+      currentScene = 2;
+    } else if (currentScene == 5){
+      currentScene = 6;
+    } else if(currentScene == 9){
+      currentScene = 10;
+    } else if(currentScene == 0){ //standard block, these are 'press any button to continue scenes'
+      currentScene = 1;
+    } else if(currentScene == 2 || currentScene == 3 || currentScene == 4 ){
+      currentScene = 5;
+    } else if(currentScene == 6 || currentScene == 7 || currentScene == 8 ){
+            currentScene = 9;
+    }
+    
+    InitiateNewScene();
+
+  } else if (switchStateB != HIGH) { //for B button
+    Serial.println("B");
+    
+    //for scene 1, 5 & 9, whenever button B is pressed, go to the scenes that have the results for the B button.
+    if(currentScene == 1){
+      currentScene = 3;
+    } else if (currentScene == 5){
+      currentScene = 7;
+    } else if(currentScene == 9){
+      currentScene = 10;
+    } else if(currentScene == 0){ //standard block, these are 'press any button to continue scenes'
+      currentScene = 1;
+    } else if(currentScene == 2 || currentScene == 3 || currentScene == 4 ){
+      currentScene = 5;
+    } else if(currentScene == 6 || currentScene == 7 || currentScene == 8 ){
+            currentScene = 9;
+    }
+    
+    InitiateNewScene();
+      
+
+  } else if (switchStateC != HIGH) { //for C button
+    Serial.println("C");
+    
+    //for scene 1, 5 & 9, whenever button B is pressed, go to the scenes that have the results for the B button.
+    if(currentScene == 1){
+      currentScene = 4;
+    } else if (currentScene == 5){
+      currentScene = 8;
+    } else if(currentScene == 9){
+      currentScene = 10;
+    } else if(currentScene == 0){ //standard block, these are 'press any button to continue scenes'
+      currentScene = 1;
+    } else if(currentScene == 2 || currentScene == 3 || currentScene == 4 ){
+      currentScene = 5;
+    } else if(currentScene == 6 || currentScene == 7 || currentScene == 8 ){
+            currentScene = 9;
+    }
+    
+    InitiateNewScene();
+  }
+  
+    ResetButtonCheck(); 
+}
+
+void ResetButtonCheck() { //resets the buttoncheck bool with a short delay, this is used to make sure pressing a button doesnt do anything for a short while
+
+  ButtonCheckSwitch();
+
+  delay(2000);
+
+  ButtonCheckSwitch();
+}
+
+void ButtonCheckSwitch() { //switches the canbuttonbepressed bool to on or off, depending on it's last state.
+  if (canButtonBePressed) {
+    !canButtonBePressed;
+    //Serial.println("Button can NOT be pressed");
+  } else { //if (!canButtonBePressed) {
+    canButtonBePressed;
+    //Serial.println("Button can YES be pressed");
+  }
+
+}
+
+void DisplayStandardText(){ //these are 4 lines of text, that are repeated throughout the adventure, therefore put in it's own function to save memory
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("for the rest of"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("your quest!"); //description of the scene
+  
+  //end block2
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Press any button"); //press any button scene
+  lcd.setCursor(0,1);
+  lcd.print("to continue...");
+}
+
+void InitiateNewScene() { //always called whenever currentscene has gone up (or down), and checks which scene it is now, so it can display the right text for the right scene
+  lcd.clear();
+  delay(500);
+  
+
+
+  if (currentScene == 0) { //Introduction scene
+  
+  // continues block
+  delay(3000);
+  lcd.setCursor(0,0);
+  lcd.print("You are an adven-"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("-nturer and you"); //description of the scene
+ 
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("seek the fabled"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("BOOK OF TALES."); //description of the scene
+  
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("It lays in the"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("keep of a ruined"); //description of the scene
+  
+  // continues blocks
+  delay(1000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("keep of a ruined"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("castle..."); //description of the scene
+ 
+  //end block2
+  delay(3000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Press any button"); //press any button scene
+  lcd.setCursor(0,1);
+  lcd.print("to continue...");  
+    
+  } else if (currentScene == 1) { //first encounter with gate & plant
+ 
+  
+  // first block
+  lcd.setCursor(0,0);
+  lcd.print("A path leads to"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("a collapsed gate"); //description of the scene
+ 
+ // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("besides it grows"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("a fruity plant"); //description of the scene
+ 
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("A crow caws from"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("a dead tree..."); //description of the scene
+ 
+  //end block
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("You see a gate"); //summary
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?"); //what do you do
+    
+  } else if (currentScene == 2) { //Option a [luck] on the gate encounter; pick a berry
+    
+  
+  // first block
+  lcd.setCursor(0,0);
+  lcd.print("You reach for"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("the berry plant"); //description of the scene
+ 
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("It comes alive"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("and bites you!"); //description of the scene
+    
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("You are POISONED"); //description of the scene
+  
+  isPoison = true;
+  
+  DisplayStandardText();
+  
+  
+  } else if (currentScene == 3) { //Option b [Action] on the gate encounter, PUNCH gate
+  
+  
+  // first block
+  lcd.setCursor(0,0);
+  lcd.print("You PUNCH"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("the gate and set"); //description of the scene
+ 
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("off a bear trap!"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("You are CRIPPLED"); //description of the scene
+  
+  isCripple = true;
+  
+    DisplayStandardText();
+
+    
+  } else if (currentScene == 4) { //Option c [Think] on the gate encounter, disarm trap
+
+    // first block
+  lcd.setCursor(0,0);
+  lcd.print("You spot a trap"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("and disarm it"); //description of the scene
+ 
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("You move through"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("the gate without"); //description of the scene
+ 
+ // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("any harm!"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("You feel CLEVER"); //description of the scene
+  
+  isClever = true;
+    
+   DisplayStandardText();
+    
+  } else if (currentScene == 5) { //second encounter: with mirror
+
+  // first block
+  lcd.setCursor(0,0);
+  lcd.print("You move through"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("the rubble but"); //description of the scene
+ 
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("something flick-"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("-ers in the cor-"); //description of the scene
+
+// continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("-ner of your eye"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("amidst the ruins"); //description of the scene
+
+// continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("It is a mirror, "); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("it shines eerily"); //description of the scene
+
+//end block
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("A magical mirror"); //summary
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?"); //what do you do
+
+  } else if (currentScene == 6) { //Option a [Luck] on the mirror encounter; talk to the mirror
+  
+  // first block
+  lcd.setCursor(0,0);
+  lcd.print("You talk to the"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("mirror: ask how"); //description of the scene
+ 
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("it is doing. The"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("mirror is thank-"); //description of the scene
+ 
+ // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("-full for your"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("concern & casts"); //description of the scene
+  
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("a spell on you.."); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("You are BLESSED"); //description of the scene
+  
+  isBless = true;
+  
+    DisplayStandardText();
+
+  
+  } else if (currentScene == 7) { //Option B [Action] on the mirror encounter, Punch mirror
+
+  // first block
+  lcd.setCursor(0,0);
+  lcd.print("You smash the"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("mirror! It cries"); //description of the scene
+ 
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("before breaking"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("to pieces on the"); //description of the scene
+ 
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("ground. Damn..."); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("You are HEARTLES"); //description of the scene
+  
+  isHeartless = true;
+  
+    DisplayStandardText();
+
+
+  } else if (currentScene == 8) { //Option c [Think] on the mirror encounter, ignore mirror
+  
+  // first block
+  lcd.setCursor(0,0);
+  lcd.print("The mirror whis-"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("-pers softly..."); //description of the scene
+ 
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("You manage to"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("ignore it and it"); //description of the scene
+  
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("enters a temper"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("tantrum; casts"); //description of the scene
+  
+// continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("a spell on you!"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("You are CURSED"); //description of the scene
+
+  isCursed = true;
+  
+    DisplayStandardText();
+
+  
+  } else if (currentScene == 9) { //final encounter; find the book
+
+  // first block
+  lcd.setCursor(0,0);
+  lcd.print("You enter a hall"); //description of the scene
+  delay(2000);
+  lcd.setCursor(0,1);
+  lcd.print("Here you find it"); //description of the scene
+ 
+  // continues blocks
+  delay(4000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("You ESCAPE with"); //description of the scene
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("the BOOK of tale"); //description of the scene
+
+
+  //Ending texts, based on the first choice (gate encounter) player has made
+  delay(4000);
+    if(isPoison){ //when player choose [a; Luck]
+      
+    // first block
+    lcd.setCursor(0,0);
+    lcd.print("but you're POIS-"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("-ONED so you die"); //description of the scene
+   
+    // continues blocks
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("young but happy"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("with your book"); //description of the scene
+        
+    } else if(isCripple){ //when player choose [b; action]
+      
+        // first block
+    lcd.setCursor(0,0);
+    lcd.print("but your CRIPPLE"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("leg made you slo"); //description of the scene
+   
+    // continues blocks
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("You were eaten"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("by a fast dragon"); //description of the scene
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("on a later quest"); //description of the scene    
+      
+    } else if(isClever){ //when player choose [c; think]
+      
+      // first block
+    lcd.setCursor(0,0);
+    lcd.print("you became the"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("wisest scolar"); //description of the scene
+   
+    // continues blocks
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("of the realm and"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("died old, wise"); //description of the scene
+      
+    }
+  
+    if(isBless){
+      
+        // first block
+    lcd.setCursor(0,0);
+    lcd.print("however your li-"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("-fe was filled"); //description of the scene
+   
+    // continues blocks
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("with riches and"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("luck..."); //description of the scene
+        
+    } else if (isHeartless){
+        
+        // first block
+    lcd.setCursor(0,0);
+    lcd.print("However you sur-"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("-vived that one"); //description of the scene
+   
+    // continues blocks
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("heart-stealing"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("demon -you being"); //description of the scene
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("heartless 'n all"); //description of the scene
+   
+    } else if (isCursed) {
+      
+        // first block
+    lcd.setCursor(0,0);
+    lcd.print("however for the"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("rest of your"); //description of the scene
+   
+    // continues blocks
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("life you had to"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("pretend being a"); //description of the scene
+    
+    // continues blocks
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("chicken: You cur-"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("-se that mirror"); //description of the scene
+    
+    }
+    
+    delay(5000);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("This concludes"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("the book..."); //description of the scene
+
+    delay(2000);
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Press any button"); //description of the scene
+    delay(500);
+    lcd.setCursor(0,1);
+    lcd.print("to play again..."); //description of the scene
+
+  } else if (currentScene > 10) { //The end screen, scene 9 always lands here on the final encounter
+  
+    ResetGame(); //resets the game to scene 0, so the player can play again
+
+  } 
+  
+}
+
+void ResetGame(){
+  setup();
+}
+
+void DoNotUse(){ //template for scene text. This function is unused. But coders can use these for templates for their own story
+  lcd.clear();
+  delay(500);
+  
+  // first block
+  lcd.setCursor(0,0);
+  lcd.print(""); //description of the scene/result
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print(""); //description of the scene/result
+ 
+  // continues blocks
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(""); //description of the scene/result
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print(""); //description of the scene/result
+ 
+ // Effect block
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(""); //description of the scene/result
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("You are AFFECTED"); //description of the effect
+
+  //Effect-end block 'for the rest of your adventure'
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("for the rest of"); //standard
+  delay(500);
+  lcd.setCursor(0,1);
+  lcd.print("your adventure!"); //standard
+ 
+ //end block2, to put behind the result scenes
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("press any button"); //standard
+  lcd.setCursor(0,1);
+  lcd.print("to continue..."); //standard
+ 
+  //end block, to put behind the situation scenes
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("summary"); //summary of situation
+  delay(1000);
+  lcd.setCursor(0,1);
+  lcd.print("What do you do?"); //standard
+  
+}
